@@ -1,9 +1,10 @@
 #include "main.h"
+#include "settings.hpp"
 
-pros::Motor leftf (1);
-pros::Motor rightf (3, true);
-pros::Motor leftb (2);
-pros::Motor rightb (4, true);
+pros::Motor Wheel_LF (Wheel_LF_Port, Wheel_LF_Reversed);
+pros::Motor Wheel_RF (Wheel_RF_Port, Wheel_RF_Reversed);
+pros::Motor Wheel_LB (Wheel_LB_Port, Wheel_LB_Reversed);
+pros::Motor Wheel_RB (Wheel_RB_Port, Wheel_RB_Reversed);
 
 
 /**
@@ -88,15 +89,16 @@ void opcontrol() {
 		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
 		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
 		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
+
+		//arcade drive
 		int power = master.get_analog(ANALOG_LEFT_Y);
 		int turn = master.get_analog(ANALOG_LEFT_X);
 		int left = power + turn;
 		int right = power - turn;
 
-		leftf.move(left);
-		leftb.move(left);
-		rightf.move(left);
-		rightb.move(right)
-		pros::delay(2);
+		Wheel_LF.move(left);
+		Wheel_LB.move(left);
+		Wheel_RF.move(right);
+		Wheel_RB.move(right);
 	}
 }
