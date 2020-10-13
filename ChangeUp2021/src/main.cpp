@@ -1,11 +1,10 @@
 #include "main.h"
-#include "settings.hpp"
+#include "autons.hpp"
 
-pros::Motor Wheel_LF (Wheel_LF_Port, Wheel_LF_Reversed);
-pros::Motor Wheel_RF (Wheel_RF_Port, Wheel_RF_Reversed);
-pros::Motor Wheel_LB (Wheel_LB_Port, Wheel_LB_Reversed);
-pros::Motor Wheel_RB (Wheel_RB_Port, Wheel_RB_Reversed);
-
+int autonChosen = 0;
+bool autonSelected = false;
+// Master controller by default.
+Controller controller;
 
 /**
  * A callback function for LLEMU's center button.
@@ -52,7 +51,36 @@ void disabled() {}
  * This task will exit when the robot is enabled and autonomous or opcontrol
  * starts.
  */
-void competition_initialize() {}
+void competition_initialize() {
+
+	ControllerButton leftButton(ControllerDigital::left);
+	ControllerButton rightButton(ControllerDigital::right);
+	ControllerButton AButton(ControllerDigital::right);
+	std::vector<std::string> autonNames = {"none", "blue left", "blue right", "red left", "red right"};
+
+
+	pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS: " + autonNames[autonChosen]);
+	while(!autonSelected){
+		if(rightButton.isPressed()){
+			autonChosen++;
+			pros::lcd::clear_line(2);
+			pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS: " + autonNames[autonChosen]);
+		}
+		if(leftButton.isPressed()){
+			pros::lcd::clear_line(2);
+			autonChosen--;
+			pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS:" + autonNames[autonChosen]);
+		}
+		if(AButton.isPressed()){
+			pros::lcd::clear_line(2);
+			pros::lcd::set_text(2, "Autonomous selected:" + autonNames[autonChosen]);
+			autonSelected = true;
+		}
+		pros::delay(100);
+	}
+
+
+}
 
 
 /**
@@ -66,7 +94,41 @@ void competition_initialize() {}
  * will be stopped. Re-enabling the robot will restart the task, not re-start it
  * from where it left off.
  */
-void autonomous() {}
+void autonomous() {
+	// Motor Groups
+	MotorGroup leftWheels({1, 2});
+	MotorGroup rightWheels({-3, -4});
+
+	//Chassis
+	std::shared_ptr<ChassisController> drive =
+			ChassisControllerBuilder()
+					.withMotors(leftWheels, rightWheels)
+					// Green gearset, 4 in wheel diam, 11.5 in wheel track
+					.withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+					.build();
+
+	switch(autonChosen)
+	{
+		case 0:
+
+		break;
+		case 1:
+			blueLeft(drive);
+			break;
+		case 2:
+			blueRight(drive);
+			break;
+		case 3:
+			redLeft(drive);
+			break;
+		case 4:
+			redRight(drive);
+			break;
+		default:
+			break;
+	}
+
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -82,23 +144,31 @@ void autonomous() {}
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
+  // Motor Groups
+	MotorGroup leftWheels({1, 2});
+	MotorGroup rightWheels({-3, -4});
+
+	// Chassis Controller Builder Integrated
+	std::shared_ptr<ChassisController> drive =
+	    ChassisControllerBuilder()
+	        .withMotors(leftWheels, rightWheels)
+	        // Green gearset, 4 in wheel diam, 11.5 in wheel track
+	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
+	        .build();
 
 
 	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
+			//for troubleshooting, analogs
+			pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & ANALOG_LEFT_Y) >> 2,
+			                 (pros::lcd::read_buttons() & ANALOG_LEFT_X) >> 1);
 
-		//arcade drive
-		int power = master.get_analog(ANALOG_LEFT_Y);
-		int turn = master.get_analog(ANALOG_LEFT_X);
-		int left = power + turn;
-		int right = power - turn;
-
-		Wheel_LF.move(left);
-		Wheel_LB.move(left);
-		Wheel_RF.move(right);
-		Wheel_RB.move(right);
+	    // Arcade drive with the left stick.
+	    drive->getModel()->arcade(controller.getAnalog(ControllerAnalog::leftY),
+	                              controller.getAnalog(ControllerAnalog::leftX));
+	    //refresh time
+	    pros::delay(10);
 	}
+
+
+
 }
