@@ -107,7 +107,7 @@ void autonomous() {
 					.withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
 					.withOdometry() // use the same scales as the chassis (above)
     			.buildOdometry();
-
+			drive->setMaxVelocity(600);
 
 	switch(autonChosen)
 	{
