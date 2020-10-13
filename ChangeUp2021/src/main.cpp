@@ -100,12 +100,14 @@ void autonomous() {
 	MotorGroup rightWheels({-3, -4});
 
 	//Chassis
-	std::shared_ptr<ChassisController> drive =
+	std::shared_ptr<OdomChassisController> drive =
 			ChassisControllerBuilder()
 					.withMotors(leftWheels, rightWheels)
 					// Green gearset, 4 in wheel diam, 11.5 in wheel track
 					.withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
-					.build();
+					.withOdometry() // use the same scales as the chassis (above)
+    			.buildOdometry();
+
 
 	switch(autonChosen)
 	{
