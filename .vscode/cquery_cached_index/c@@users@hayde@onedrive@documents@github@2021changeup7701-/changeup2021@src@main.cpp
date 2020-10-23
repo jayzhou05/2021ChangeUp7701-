@@ -32,40 +32,6 @@ void initialize() {
 	pros::lcd::initialize();
 	pros::lcd::set_text(1, "Hello Hayden, good luck today!~ (^^)/");
 
-	ControllerButton leftButton(ControllerDigital::left);
-	ControllerButton rightButton(ControllerDigital::right);
-	ControllerButton AButton(ControllerDigital::A);
-	std::vector<std::string> autonNames = {"none", "blue left", "blue right", "red left", "red right"};
-
-
-	pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS:");
-	pros::lcd::set_text(3, autonNames[autonChosen]);
-	while(!autonSelected){
-		if(rightButton.isPressed()){
-			if (autonChosen < 4) {
-				autonChosen++;
-			}
-			pros::lcd::clear_line(2);
-			pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS:");
-			pros::lcd::set_text(3, autonNames[autonChosen]);
-		}
-		if(leftButton.isPressed()){
-			pros::lcd::clear_line(2);
-			if (autonChosen > 0) {
-				autonChosen--;
-			}
-			pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS:");
-			pros::lcd::set_text(3, autonNames[autonChosen]);
-		}
-		if(AButton.isPressed()){
-			pros::lcd::clear_line(2);
-			pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS:");
-			pros::lcd::set_text(3, autonNames[autonChosen]);
-			autonSelected = true;
-		}
-		pros::delay(200);
-	}
-
 	pros::lcd::register_btn1_cb(on_center_button);
 }
 
@@ -89,24 +55,20 @@ void competition_initialize() {
 
 	ControllerButton leftButton(ControllerDigital::left);
 	ControllerButton rightButton(ControllerDigital::right);
-	ControllerButton AButton(ControllerDigital::A);
+	ControllerButton AButton(ControllerDigital::right);
 	std::vector<std::string> autonNames = {"none", "blue left", "blue right", "red left", "red right"};
 
 
 	pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS: " + autonNames[autonChosen]);
 	while(!autonSelected){
 		if(rightButton.isPressed()){
-			if (autonChosen < 4) {
-				autonChosen++;
-			}
+			autonChosen++;
 			pros::lcd::clear_line(2);
 			pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS: " + autonNames[autonChosen]);
 		}
 		if(leftButton.isPressed()){
 			pros::lcd::clear_line(2);
-			if (autonChosen > 0) {
-				autonChosen--;
-			}
+			autonChosen--;
 			pros::lcd::set_text(2, "PLEASE SELECT THE AUTONOMOUS:" + autonNames[autonChosen]);
 		}
 		if(AButton.isPressed()){
