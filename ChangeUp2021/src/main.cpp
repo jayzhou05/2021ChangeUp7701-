@@ -136,6 +136,23 @@ void autonomous() {
 	// Motor Groups
 	MotorGroup leftWheels({1, 2});
 	MotorGroup rightWheels({-3, -4});
+	MotorGroup intakeMotors({5,-6});
+	Motor fEject(7);
+	Motor bEject(8);
+
+	//PID Values
+	const double intakeskP = 0.001;
+	const double intakeskI = 0.0001;
+	const double intakeskD = 0.0001;
+
+	const double fEjectkP = 0.001;
+	const double fEjectkI = 0.0001;
+	const double fEjectkD = 0.0001;
+
+	const double bEjectkP = 0.001;
+	const double bEjectkI = 0.0001;
+	const double bEjectkD = 0.0001;
+
 
 	//Chassis
 	std::shared_ptr<OdomChassisController> drive =
@@ -147,22 +164,41 @@ void autonomous() {
     			.buildOdometry();
 			drive->setMaxVelocity(600);
 
+
+	std::shared_ptr<AsyncPositionController<double, double>> intakeControl =
+	  AsyncPosControllerBuilder()
+	    .withMotor(intakeMotors) // lift motor port 3
+	    .withGains({intakeskP, intakeskI, intakeskD})
+	    .build();
+
+	std::shared_ptr<AsyncPositionController<double, double>> bEjectorControl =
+		AsyncPosControllerBuilder()
+			.withMotor(bEject) // lift motor port 3
+			.withGains({bEjectkP, bEjectkI, bEjectkP})
+			.build();
+
+	std::shared_ptr<AsyncPositionController<double, double>> fEjectorControl =
+		AsyncPosControllerBuilder()
+			.withMotor(fEject) // lift motor port 3
+			.withGains({fEjectkP, fEjectkI, fEjectkD})
+			.build();
+
 	switch(autonChosen)
 	{
 		case 0:
 
 		break;
 		case 1:
-			blueLeft(drive);
+			blueLeft(drive, intakeControl, bEjectorControl, fEjectorControl);
 			break;
 		case 2:
-			blueRight(drive);
+			blueRight(drive, intakeControl, bEjectorControl, fEjectorControl);
 			break;
 		case 3:
-			redLeft(drive);
+			redLeft(drive, intakeControl, bEjectorControl, fEjectorControl);
 			break;
 		case 4:
-			redRight(drive);
+			redRight(drive, intakeControl, bEjectorControl, fEjectorControl);
 			break;
 		default:
 			break;
