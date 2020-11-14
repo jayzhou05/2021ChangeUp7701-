@@ -184,9 +184,13 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-  // Motor Groups
+  // Motor Groups + Indv. Motors
 	MotorGroup leftWheels({1, 2});
 	MotorGroup rightWheels({-3, -4});
+	Motor lIntake(5);
+	Motor rIntake(-6);
+	Motor fEject(7);
+	Motor bEject(8);
 
 	// Chassis Controller Builder Integrated
 	std::shared_ptr<ChassisController> drive =
@@ -196,6 +200,17 @@ void opcontrol() {
 	        .withDimensions(AbstractMotor::gearset::green, {{4_in, 11.5_in}, imev5GreenTPR})
 	        .build();
 
+	//Controller Toggle Buttons
+	ControllerButton intakeButton(ControllerDigital::L2);
+	ControllerButton ejectorButton(ControllerDigital::R1);
+	ControllerButton ejectorButtonSlow(ControllerDigital::L1);
+	ControllerButton ejectorRevButton(ControllerDigital::B);
+
+	//Toggle Values
+	int intakeTog = 0;
+	int ejectionTog = -1;
+	int ejectReverseTog = -1;
+	int ejectSlowTog = -1;
 
 	while (true) {
 			//for troubleshooting, analogs
@@ -205,6 +220,61 @@ void opcontrol() {
 	    // Arcade drive with the left stick.
 	    drive->getModel()->arcade(controller.getAnalog(ControllerAnalog::leftY),
 	                              controller.getAnalog(ControllerAnalog::leftX));
+
+			//Toggle Checks
+			if(ejectorButton.isPressed()){
+					ejectionTog *= -1;
+			}
+			if(ejectorButtonSlow.isPressed()){
+					ejectSlowTog *= -1;
+			}
+			if(ejectorRevButton.isPressed()){
+					ejectReverseTog *= -1;
+			}
+
+
+			//MOTOR CONTROLS---------------
+
+			//Intakes
+			if(intakeButton.isPressed()){ //When intakes buttons are held
+					lIntake.moveVoltage(12000);
+					rIntake.moveVoltage(12000);
+			} else{
+				lIntake.moveVoltage(0);
+				rIntake.moveVoltage(0);
+			}
+
+			//Ejector
+			if(ejectionTog == 1){ //When ejector is on
+				  if(ejectReverseTog==-1){ //When not reversed
+						if(ejectSlowTog==1){ //Not reversed Slow
+							fEject.moveVoltage(7000);
+							bEject.moveVoltage(7000);
+						}else if(ejectSlowTog==-1){ //Not reversed Fast
+							fEject.moveVoltage(12000);
+							bEject.moveVoltage(12000);
+						}
+					}else if(ejectReverseTog==1){ //When reversed
+						if(ejectSlowTog==1){ //Reversed slow
+							fEject.moveVoltage(7000);
+							bEject.moveVoltage(-7000);
+						}else if(ejectSlowTog==-1){ //Reversed Fast
+							fEject.moveVoltage(12000);
+							bEject.moveVoltage(-12000);
+						}
+					}
+			}else if(ejectionTog==-1){ //When ejector is off
+				fEject.moveVoltage(0);
+				bEject.moveVoltage(0);
+			}
+
+			/*
+			//EJECTOR ANALOG CONTROLS
+
+				fEject.moveVoltage(abs(94 * controller.getAnalog(ControllerAnalog::rightY)));
+				bEject.moveVoltage(94 * controller.getAnalog(ControllerAnalog::rightY));
+
+			*/
 	    //refresh time
 	    pros::delay(10);
 	}
